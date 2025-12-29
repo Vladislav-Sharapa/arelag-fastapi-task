@@ -1,8 +1,8 @@
-import typing
 from datetime import datetime
 from enum import StrEnum
+from typing import List, Optional
 
-from pydantic import BaseModel
+from pydantic import BaseModel, ConfigDict
 from pydantic.v1 import root_validator
 
 from app.schemas import CurrencyEnum
@@ -11,6 +11,14 @@ from app.schemas import CurrencyEnum
 class UserStatusEnum(StrEnum):
     ACTIVE = "ACTIVE"
     BLOCKED = "BLOCKED"
+
+
+class UserFilter(BaseModel):
+    id: Optional[int] = None
+    email: Optional[str] = None
+    status: Optional[UserStatusEnum] = None
+
+    model_config = ConfigDict(from_attributes=True)
 
 
 class RequestUserModel(BaseModel):
@@ -22,30 +30,34 @@ class RequestUserUpdateModel(BaseModel):
 
 
 class ResponseUserBalanceModel(BaseModel):
-    currency: typing.Optional[CurrencyEnum] = None
-    amount: typing.Optional[float] = None
+    currency: Optional[CurrencyEnum] = None
+    amount: Optional[float] = None
 
 
 class ResponseUserModel(BaseModel):
-    id: typing.Optional[int]
-    email: typing.Optional[str] = None
-    status: typing.Optional[UserStatusEnum] = None
-    created: typing.Optional[datetime] = None
-    balances: typing.Optional[typing.List[ResponseUserBalanceModel]] = None
+    id: Optional[int]
+    email: Optional[str] = None
+    status: Optional[UserStatusEnum] = None
+    created: Optional[datetime] = None
+    balances: Optional[List[ResponseUserBalanceModel]] = None
+
+    model_config = ConfigDict(from_attributes=True)
 
 
 class UserModel(BaseModel):
-    id: typing.Optional[int]
-    email: typing.Optional[str] = None
-    status: typing.Optional[UserStatusEnum] = None
-    created: typing.Optional[datetime] = None
+    id: Optional[int]
+    email: Optional[str] = None
+    status: Optional[UserStatusEnum] = None
+    created: Optional[datetime] = None
+
+    model_config = ConfigDict(from_attributes=True)
 
 
 class UserBalanceModel(BaseModel):
-    id: typing.Optional[int]
-    user_id: typing.Optional[int] = None
-    currency: typing.Optional[CurrencyEnum] = None
-    amount: typing.Optional[float] = None
+    id: Optional[int]
+    user_id: Optional[int] = None
+    currency: Optional[CurrencyEnum] = None
+    amount: Optional[float] = None
 
     @root_validator(pre=True)
     def validate_not_negative(self, values):
