@@ -1,29 +1,10 @@
 import typing
-from datetime import datetime
 
 from fastapi import APIRouter, Depends, status
-from sqlalchemy import select, update
-from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.database import get_async_session
-from app.exceptions import BadRequestDataException
-from app.schemas import CurrencyEnum
 from app.src.users.dependencies import get_user_service
-from app.src.users.exceptions import (
-    UserAlreadyActiveException,
-    UserAlreadyBlockedException,
-    UserAlreadyExistsException,
-    UserNotExistsException,
-)
-from app.src.users.models import User, UserBalance
-from app.src.users.schemas import (
-    RequestUserModel,
-    RequestUserUpdateModel,
-    ResponseUserModel,
-    UserFilter,
-    UserModel,
-    UserStatusEnum,
-)
+from app.src.users.schemas import (RequestUserModel, RequestUserUpdateModel,
+                                   ResponseUserModel, UserFilter, UserModel)
 from app.src.users.service import UserService
 
 router = APIRouter()
