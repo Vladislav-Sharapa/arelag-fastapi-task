@@ -61,7 +61,9 @@ class UserRepository(SQLAlchemyRepository):
         return result.scalar_one_or_none()
 
     async def update_status(self, user: User, status: str) -> User:
-        db_user: User = await self.get(user.id)
+        db_user = user
+        if not db_user in self.session:
+            db_user: User = await self.get(user.id)
         db_user.status = status
-        self.session.commit()
-        return user
+        await self.session.commit()
+        return db_user
