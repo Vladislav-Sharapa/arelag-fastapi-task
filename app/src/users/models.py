@@ -1,26 +1,27 @@
-from sqlalchemy import Column, DateTime, ForeignKey, Integer, Numeric, String, UniqueConstraint
-from sqlalchemy.orm import relationship
+from decimal import Decimal
+from typing import List
+
+from sqlalchemy import ForeignKey, UniqueConstraint
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.model import Base
 
 
 class User(Base):
     __tablename__ = "user"
-    id = Column(Integer, primary_key=True)
-    email = Column(String, nullable=True, unique=True)
-    status = Column(String, nullable=True)
-    created = Column(DateTime, nullable=True)
 
-    user_balance = relationship("UserBalance", back_populates="owner")
+    email: Mapped[str] = mapped_column(nullable=True, unique=True)
+    status: Mapped[str] = mapped_column(nullable=True)
+
+    user_balance: Mapped[List["UserBalance"]] = relationship("UserBalance", back_populates="owner")
 
 
 class UserBalance(Base):
     __tablename__ = "user_balance"
-    id = Column(Integer, primary_key=True)
-    user_id = Column(Integer, ForeignKey("user.id"), nullable=False)
-    currency = Column(String, nullable=True)
-    amount = Column(Numeric, nullable=True)
-    created = Column(DateTime, nullable=True)
-    UniqueConstraint("user_id", "currency", name="user_balance_user_currency_unique")
 
-    owner = relationship("User", back_populates="user_balance")
+    user_id: Mapped[int] = mapped_column(ForeignKey("user.id"), nullable=False)
+    currency: Mapped[str] = mapped_column(nullable=True)
+    amount: Mapped[Decimal] = mapped_column(default=0, nullable=True)
+
+    __table_args__ = (UniqueConstraint("user_id", "currency", name="user_balance_user_currency_unique"),)
+    owner: Mapped["User"] = relationship("User", back_populates="user_balance")
