@@ -14,30 +14,13 @@ class UserRepository(SQLAlchemyRepository):
     model: User = User
 
     async def get_users_with_balancies(self, filters: Optional[UserFilter]) -> List[User]:
-        # query = select(self.model).options(joinedload(self.model.user_balance))
+        query = select(User).options(selectinload(User.user_balance))
 
-        # for field, value in filters.model_dump(exclude_none=True).items():
-        #     query = query.filter(getattr(self.model, field) == value)
-        # result = await self.session.execute(query)
-        # return result.unique().scalars().all()
-        query = select(User).order_by(User.created.desc())
         for field, value in filters.model_dump(exclude_none=True).items():
             query = query.filter(getattr(self.model, field) == value)
-        users = await self.session.execute(query)
-        users = users.scalars()
-        results = []
-        for user in users:
-            result = ResponseUserModel(
-                id=user.id, email=user.email, status=UserStatusEnum(user.status), created=user.created
-            )
-            balances = await self.session.execute(select(UserBalance).where(UserBalance.user_id == user.id))
-            balances = balances.scalars()
-            balances = sorted(
-                [{"currency": b.currency, "amount": b.amount} for b in balances], key=lambda x: x["amount"]
-            )
-            result.balances = balances
-            results.append(result)
-        return sorted(results, key=lambda x: x.created)
+        result = await self.session.execute(query)
+
+        return result.scalars()
 
     async def create_user(self, model: RequestUserModel) -> User:
         user = User(email=model.email, status=UserStatusEnum.ACTIVE, created=datetime.utcnow())
