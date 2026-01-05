@@ -1,8 +1,8 @@
 from datetime import datetime
-from typing import List, Optional, Sequence
+from typing import List, Optional
 
 from sqlalchemy import select, update
-from sqlalchemy.orm import joinedload
+from sqlalchemy.orm import joinedload, selectinload
 
 from app.schemas import CurrencyEnum
 from app.src.users.models import User, UserBalance
@@ -33,9 +33,9 @@ class UserRepository(SQLAlchemyRepository):
         self.session.add_all(balances)
 
         await self.session.commit()
-        await self.session.refresh(user)
-
-        return user
+        query = select(User).options(joinedload(User.user_balance)).where(User.id == user.id)
+        query_result = await self.session.execute(query)
+        return query_result.scalar()
 
     async def get_by_email(self, email: str) -> User | None:
         query = select(User).where(User.email == email)
