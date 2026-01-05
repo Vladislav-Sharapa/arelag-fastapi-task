@@ -2,7 +2,7 @@ from datetime import datetime
 from enum import StrEnum
 from typing import List, Optional
 
-from pydantic import BaseModel, ConfigDict
+from pydantic import BaseModel, ConfigDict, EmailStr
 from pydantic.v1 import root_validator
 
 from app.schemas import CurrencyEnum
@@ -22,7 +22,7 @@ class UserFilter(BaseModel):
 
 
 class RequestUserModel(BaseModel):
-    email: str
+    email: Optional[EmailStr]
 
 
 class RequestUserUpdateModel(BaseModel):
@@ -33,13 +33,15 @@ class ResponseUserBalanceModel(BaseModel):
     currency: Optional[CurrencyEnum] = None
     amount: Optional[float] = None
 
+    model_config = ConfigDict(from_attributes=True)
+
 
 class ResponseUserModel(BaseModel):
     id: Optional[int]
     email: Optional[str] = None
     status: Optional[UserStatusEnum] = None
     created: Optional[datetime] = None
-    balances: Optional[List[ResponseUserBalanceModel]] = None
+    user_balance: Optional[List[ResponseUserBalanceModel]] = None
 
     model_config = ConfigDict(from_attributes=True)
 
