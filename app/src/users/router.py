@@ -1,0 +1,27 @@
+import typing
+
+from fastapi import APIRouter, Depends, status
+
+from app.src.users.dependencies import get_user_service
+from app.src.users.schemas import RequestUserModel, RequestUserUpdateModel, ResponseUserModel, UserFilter, UserModel
+from app.src.users.service import UserService
+
+router = APIRouter()
+
+
+@router.get("/users", response_model=list[ResponseUserModel], status_code=status.HTTP_200_OK)
+async def get_users(
+    filters: UserFilter = Depends(),
+    service: UserService = Depends(get_user_service),
+):
+    return await service.get_all(filters=filters)
+
+
+@router.post("/users", status_code=status.HTTP_200_OK)
+async def post_user(user: RequestUserModel, service: UserService = Depends(get_user_service)):
+    return await service.create_user(user)
+
+
+@router.patch("/users/{user_id}", response_model=typing.Optional[UserModel] | None)
+async def patch_user(user_id: int, user: RequestUserUpdateModel, service: UserService = Depends(get_user_service)):
+    return await service.patch_user(id=user_id, user=user)
