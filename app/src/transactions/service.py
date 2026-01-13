@@ -1,11 +1,51 @@
 from datetime import date
+from typing import List
 
 from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.schemas import EXCHANGE_RATES_TO_USD
+from app.src.transactions.exceptions import CreateTransactionForBlockedUserException, TransactionNotExistsException
 from app.src.transactions.models import Transaction
+from app.src.transactions.repository import TransactionRepository
+from app.src.transactions.schemas import RequestTransactionModel, TransactionModel, TransactionStatusEnum
 from app.src.users.models import User
+
+
+class TransactionService:
+
+    def __init__(self, session: AsyncSession):
+        self.session = session
+        self.__transaction_repository = TransactionRepository(session=self.session)
+
+    async def get_one(self, transaction_id: int) -> Transaction:
+        
+        transaction = await self.__transaction_repository.get(transaction_id)
+
+        if not transaction:
+            raise TransactionNotExistsException
+        return transaction
+
+    async def get_all(self, user_id: int | None) -> List[TransactionModel]:
+        if user_id:
+            transactions = await self.__transaction_repository.get_all_by_user_id(user_id=user_id)
+        else:
+            transactions = await self.__transaction_repository.get_all()
+        return [TransactionModel.model_validate(transaction) for transaction in transactions]
+
+    async def create_transaction(self, user_id: int, obj: RequestTransactionModel) -> Transaction:
+        transaction = Transaction(
+            user_id=user_id, 
+            currency=obj.currency, 
+            amount=obj.amount, 
+            status=TransactionStatusEnum.processed
+        )
+        transaction = await self.__transaction_repository.create(transaction)
+        return transaction
+    
+    async def set_transaction_rollback(self, transaction: Transaction) -> Transaction:
+        transaction = await self.__transaction_repository.update(transaction, status=TransactionStatusEnum.roll_backed)
+        return transaction
 
 
 async def get_registered_and_deposit_users_count(session: AsyncSession, dt_gt: date, dt_lt: date):

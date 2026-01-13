@@ -1,8 +1,9 @@
 import typing
 from datetime import datetime
+from decimal import Decimal
 from enum import StrEnum
 
-from pydantic import BaseModel
+from pydantic import BaseModel, ConfigDict
 
 from app.schemas import CurrencyEnum
 
@@ -14,7 +15,11 @@ class TransactionStatusEnum(StrEnum):
 
 class RequestTransactionModel(BaseModel):
     currency: CurrencyEnum
-    amount: float
+    amount: Decimal
+
+
+class ResponseTransactionModel(BaseModel):
+    pass
 
 
 class TransactionModel(BaseModel):
@@ -24,3 +29,5 @@ class TransactionModel(BaseModel):
     amount: typing.Optional[float] = None
     status: typing.Optional[TransactionStatusEnum] = None
     created: typing.Optional[datetime] = None
+
+    model_config = ConfigDict(from_attributes=True)

@@ -1,4 +1,5 @@
 from datetime import datetime
+from decimal import Decimal
 from typing import List, Optional
 
 from sqlalchemy import select, update
@@ -6,7 +7,7 @@ from sqlalchemy.orm import joinedload, selectinload
 
 from app.schemas import CurrencyEnum
 from app.src.users.models import User, UserBalance
-from app.src.users.schemas import RequestUserModel, ResponseUserModel, UserFilter, UserStatusEnum
+from app.src.users.schemas import RequestUserModel, UserFilter, UserStatusEnum
 from app.utils.repository import SQLAlchemyRepository
 
 
@@ -23,7 +24,11 @@ class UserRepository(SQLAlchemyRepository):
         return result.scalars()
 
     async def create_user(self, model: RequestUserModel) -> User:
-        user = User(email=model.email, status=UserStatusEnum.ACTIVE, created=datetime.utcnow())
+        user = User(
+            email=model.email, 
+            status=UserStatusEnum.ACTIVE
+        )
+    
         self.session.add(user)
         balances = [
             UserBalance(owner=user, currency=str(currency), amount=0, created=datetime.utcnow())
@@ -48,5 +53,25 @@ class UserRepository(SQLAlchemyRepository):
         if not db_user in self.session:
             db_user: User = await self.get(user.id)
         db_user.status = status
-        await self.session.commit()
         return db_user
+    
+
+class UserBalanceRepository(SQLAlchemyRepository):
+    model: UserBalance = UserBalance
+
+    async def get_user_balance_by_currency(self, user_id: int, currency: str) -> UserBalance | None:
+        query = select(UserBalance).filter(
+            UserBalance.user_id == user_id,
+            UserBalance.currency == currency
+        ) 
+        query_result = await self.session.execute(query)
+        return query_result.scalar_one_or_none()
+    
+    async def update_balance(self, user_balance: UserBalance, amount: Decimal) -> UserBalance:
+        balance = user_balance
+        query = update(UserBalance).where(UserBalance.id == balance.id).values(amount=amount)
+
+        await self.session.execute(query)
+        await self.session.flush(balance)
+
+        return balance

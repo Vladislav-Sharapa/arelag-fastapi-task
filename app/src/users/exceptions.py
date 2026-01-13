@@ -23,4 +23,11 @@ class UserAlreadyActiveException(BaseHttpApplicationException):
     detail = "User is already active"
 
 
-class NegativeBalanceException(HTTPException): ...
+class NegativeBalanceException(BaseHttpApplicationException):
+    status_code = status.HTTP_400_BAD_REQUEST
+    detail = "Negative balance"
+
+
+class UserBalanceNotFound(BaseHttpApplicationException):
+    status_code = status.HTTP_400_BAD_REQUEST
+    detail = "User balance was not found"

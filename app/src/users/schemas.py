@@ -61,6 +61,8 @@ class UserBalanceModel(BaseModel):
     currency: Optional[CurrencyEnum] = None
     amount: Optional[float] = None
 
+    model_config = ConfigDict(from_attributes=True)
+
     @root_validator(pre=True)
     def validate_not_negative(self, values):
         if "amount" in values and values.get("amount"):
