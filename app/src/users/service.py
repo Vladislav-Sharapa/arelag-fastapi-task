@@ -33,8 +33,9 @@ from app.src.users.schemas import (
 
 class UserService:
     def __init__(self, session: AsyncSession):
-        self.__user_repository = UserRepository(session=session)
-        self.__user_balance_repository = UserBalanceRepository(session=session)
+        self.__session = session
+        self.__user_repository = UserRepository(session=self.__session)
+        self.__user_balance_repository = UserBalanceRepository(session=self.__session)
 
 
     async def get_user(self, user_id: int) -> User:
@@ -75,6 +76,7 @@ class UserService:
             raise UserAlreadyActiveException
 
         updated_user = await self.__user_repository.update_status(db_user, user.status)
+        await self.__session.commit()
         return UserModel.model_validate(updated_user)
     
     async def get_user_balance_by_currency(self, user_id: int, currency: str) -> UserBalance:
