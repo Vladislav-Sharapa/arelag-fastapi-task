@@ -1,6 +1,6 @@
 from fastapi import HTTPException, status
 
-from app.exceptions import BaseHttpApplicationException
+from app.src.core.exceptions import BaseHttpApplicationException
 
 
 class UserAlreadyExistsException(BaseHttpApplicationException):

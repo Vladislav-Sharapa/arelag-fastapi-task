@@ -2,8 +2,8 @@ from typing import List
 
 from sqlalchemy import select
 
-from app.src.transactions.models import Transaction
-from app.utils.repository import SQLAlchemyRepository
+from app.src.core.repository import SQLAlchemyRepository
+from app.src.models.transaction import Transaction
 
 
 class TransactionRepository(SQLAlchemyRepository):
@@ -14,4 +14,3 @@ class TransactionRepository(SQLAlchemyRepository):
         query_result = await self.session.execute(query)
 
         return query_result.scalars()
-    

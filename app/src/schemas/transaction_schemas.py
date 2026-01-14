@@ -5,7 +5,7 @@ from enum import StrEnum
 
 from pydantic import BaseModel, ConfigDict
 
-from app.schemas import CurrencyEnum
+from app.src.core.enums import CurrencyEnum
 
 
 class TransactionStatusEnum(StrEnum):

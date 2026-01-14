@@ -4,10 +4,10 @@ from typing import List
 from sqlalchemy import ForeignKey, UniqueConstraint
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
-from app.model import Base
+from app.src.core.models import BaseModel
 
 
-class User(Base):
+class User(BaseModel):
     __tablename__ = "user"
 
     email: Mapped[str] = mapped_column(nullable=True, unique=True)
@@ -16,7 +16,7 @@ class User(Base):
     user_balance: Mapped[List["UserBalance"]] = relationship("UserBalance", back_populates="owner")
 
 
-class UserBalance(Base):
+class UserBalance(BaseModel):
     __tablename__ = "user_balance"
 
     user_id: Mapped[int] = mapped_column(ForeignKey("user.id"), nullable=False)
