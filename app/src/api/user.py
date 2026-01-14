@@ -2,9 +2,12 @@ import typing
 
 from fastapi import APIRouter, Depends, status
 
-from app.src.users.dependencies import get_user_service
-from app.src.users.schemas import RequestUserModel, RequestUserUpdateModel, ResponseUserModel, UserFilter, UserModel
-from app.src.users.service import UserService
+from app.src.api.depedencies.user_dependencies import get_user_service
+from app.src.schemas.user_schemas import (RequestUserModel,
+                                          RequestUserUpdateModel,
+                                          ResponseUserModel, UserFilter,
+                                          UserModel)
+from app.src.services.user import UserService
 
 router = APIRouter()
 

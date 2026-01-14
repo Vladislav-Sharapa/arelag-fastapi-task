@@ -1,9 +1,10 @@
 import uvicorn
 from fastapi import FastAPI
 
-from app.src.transactions.exceptions import register_transaction_error_hadlers
-from app.src.transactions.router import router as transaction_router
-from app.src.users.router import router as user_router
+from app.src.api.transaction import router as transaction_router
+from app.src.api.user import router as user_router
+from app.src.exceptions.transaction_exceptions import \
+    register_transaction_error_hadlers
 
 app = FastAPI()
 
