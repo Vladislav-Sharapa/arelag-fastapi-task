@@ -19,7 +19,7 @@ class TransactionAlreadyRollbackedException(Exception): ...
 
 
 # FastApi exception handlers
-def register_transaction_error_hadlers(app: FastAPI):
+def register_transaction_error_handlers(app: FastAPI):
 
     @app.exception_handler(CreateTransactionForBlockedUserException)
     async def create_transaction_for_blocked_user_hadler(request, exc):
