@@ -1,14 +1,14 @@
 from fastapi import Depends
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.database import engine, get_async_session
 from app.manage import app
-from app.model import Base
+from app.src.core.database import engine, get_async_session
+from app.src.core.models import BaseModel
 
 
 async def create_db_and_tables():
     async with engine.begin() as conn:
-        await conn.run_sync(Base.metadata.create_all)
+        await conn.run_sync(BaseModel.metadata.create_all)
 
 
 @app.on_event("startup")

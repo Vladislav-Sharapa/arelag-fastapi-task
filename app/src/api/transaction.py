@@ -4,24 +4,23 @@ from datetime import datetime, timedelta
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.database import get_async_session
-from app.exceptions import BadRequestDataException
-from app.schemas import CurrencyEnum
-from app.src.transactions.dependencies import get_transaction_create_use_case, get_transaction_service, get_transaction_roll_back_use_case
-
-from app.src.transactions.flows import CreateTransactionUseCase, TransactionRollBackUseCase
-from app.src.transactions.schemas import RequestTransactionModel, TransactionModel
-from app.src.transactions.service import (
-    TransactionService,
-    get_not_rollbacked_deposit_amount,
-    get_not_rollbacked_transactions_count,
-    get_not_rollbacked_withdraw_amount,
+from app.src.api.depedencies.transaction_dependencies import (
+    get_transaction_create_use_case, get_transaction_roll_back_use_case,
+    get_transaction_service)
+from app.src.core.database import get_async_session
+from app.src.core.enums import CurrencyEnum
+from app.src.core.exceptions import BadRequestDataException
+from app.src.schemas.transaction_schemas import (RequestTransactionModel,
+                                                 TransactionModel)
+from app.src.services.flows.transaction_flows import (
+    CreateTransactionUseCase, TransactionRollBackUseCase)
+from app.src.services.transaction import (
+    TransactionService, get_not_rollbacked_deposit_amount,
+    get_not_rollbacked_transactions_count, get_not_rollbacked_withdraw_amount,
     get_registered_and_deposit_users_count,
     get_registered_and_not_rollbacked_deposit_users_count,
-    get_transactions_count,
-)
-from app.src.users.exceptions import NegativeBalanceException, UserNotExistsException
-from app.src.users.service import UserService, get_registered_users_count
+    get_transactions_count)
+from app.src.services.user import get_registered_users_count
 
 router = APIRouter()
 
@@ -56,13 +55,13 @@ async def post_transaction(
 @router.patch("/{user_id}/transactions/{transaction_id}", response_model=typing.Optional[TransactionModel] | None)
 async def patch_rollback_transaction(
     user_id: int,
-    transaction_id: int, 
-    transaction_use_case: TransactionRollBackUseCase = Depends(get_transaction_roll_back_use_case)
+    transaction_id: int,
+    transaction_use_case: TransactionRollBackUseCase = Depends(get_transaction_roll_back_use_case),
 ):
-    
+
     if user_id < 0 or transaction_id < 0:
         raise BadRequestDataException
-    
+
     transaction = await transaction_use_case.execute(user_id=user_id, transaction_id=transaction_id)
     return transaction
 

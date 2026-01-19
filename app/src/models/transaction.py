@@ -2,10 +2,10 @@ from decimal import Decimal
 
 from sqlalchemy.orm import Mapped, mapped_column
 
-from app.model import Base
+from app.src.core.models import BaseModel
 
 
-class Transaction(Base):
+class Transaction(BaseModel):
     __tablename__ = "transaction"
 
     user_id: Mapped[int] = mapped_column(nullable=False)

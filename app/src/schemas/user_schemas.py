@@ -5,7 +5,7 @@ from typing import List, Optional
 from pydantic import BaseModel, ConfigDict, EmailStr
 from pydantic.v1 import root_validator
 
-from app.schemas import CurrencyEnum
+from app.src.core.enums import CurrencyEnum
 
 
 class UserStatusEnum(StrEnum):
