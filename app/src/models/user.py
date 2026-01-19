@@ -13,7 +13,9 @@ class User(BaseModel):
     email: Mapped[str] = mapped_column(nullable=True, unique=True)
     status: Mapped[str] = mapped_column(nullable=True)
 
-    user_balance: Mapped[List["UserBalance"]] = relationship("UserBalance", back_populates="owner")
+    user_balance: Mapped[List["UserBalance"]] = relationship(
+        "UserBalance", back_populates="owner"
+    )
 
 
 class UserBalance(BaseModel):
@@ -23,5 +25,9 @@ class UserBalance(BaseModel):
     currency: Mapped[str] = mapped_column(nullable=True)
     amount: Mapped[Decimal] = mapped_column(default=0, nullable=True)
 
-    __table_args__ = (UniqueConstraint("user_id", "currency", name="user_balance_user_currency_unique"),)
+    __table_args__ = (
+        UniqueConstraint(
+            "user_id", "currency", name="user_balance_user_currency_unique"
+        ),
+    )
     owner: Mapped["User"] = relationship("User", back_populates="user_balance")

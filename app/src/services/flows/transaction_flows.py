@@ -4,11 +4,14 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.src.exceptions.transaction_exceptions import (
     TransactionAlreadyRollbackedException,
-    TransactionDoesNotBelongToUserException)
+    TransactionDoesNotBelongToUserException,
+)
 from app.src.exceptions.user_exceptions import NegativeBalanceException
-from app.src.schemas.transaction_schemas import (RequestTransactionModel,
-                                                 TransactionModel,
-                                                 TransactionStatusEnum)
+from app.src.schemas.transaction_schemas import (
+    RequestTransactionModel,
+    TransactionModel,
+    TransactionStatusEnum,
+)
 from app.src.services.transaction import TransactionService
 from app.src.services.user import UserService
 
@@ -19,7 +22,9 @@ class CreateTransactionUseCase:
         self.__transaction_service = TransactionService(session=self.__session)
         self.__user_service = UserService(session=self.__session)
 
-    async def execute(self, user_id: int, request: RequestTransactionModel) -> TransactionModel:
+    async def execute(
+        self, user_id: int, request: RequestTransactionModel
+    ) -> TransactionModel:
         """
         Execute a transaction for a user and update their balance.
 
@@ -39,16 +44,24 @@ class CreateTransactionUseCase:
         user_balance = await self.__user_service.get_user_balance_by_currency(
             user_id=user_id, currency=request.currency
         )
-        new_balance_amount = self.__calculate_new_balance(user_balance.amount, request_amount=request.amount)
-        user_balance = await self.__user_service.update_balance(user_balance, amount=new_balance_amount)
+        new_balance_amount = self.__calculate_new_balance(
+            user_balance.amount, request_amount=request.amount
+        )
+        user_balance = await self.__user_service.update_balance(
+            user_balance, amount=new_balance_amount
+        )
 
-        transaction = await self.__transaction_service.create_transaction(user_id=user_id, obj=request)
+        transaction = await self.__transaction_service.create_transaction(
+            user_id=user_id, obj=request
+        )
 
         await self.__session.commit()
 
         return TransactionModel.model_validate(transaction)
 
-    def __calculate_new_balance(self, current_balance_amount: Decimal, request_amount: Decimal) -> Decimal:
+    def __calculate_new_balance(
+        self, current_balance_amount: Decimal, request_amount: Decimal
+    ) -> Decimal:
         return current_balance_amount + request_amount
 
 
@@ -58,7 +71,9 @@ class TransactionRollBackUseCase:
         self.__transaction_service = TransactionService(session=self.__session)
         self.__user_service = UserService(session=self.__session)
 
-    def __calculate_new_balance(self, balance_amount: Decimal, transaction_amount: Decimal) -> Decimal:
+    def __calculate_new_balance(
+        self, balance_amount: Decimal, transaction_amount: Decimal
+    ) -> Decimal:
         new_amount = balance_amount
 
         if transaction_amount < 0:
@@ -89,7 +104,9 @@ class TransactionRollBackUseCase:
         """
         user = await self.__user_service.get_active_user(user_id=user_id)
 
-        user_transacrion = await self.__transaction_service.get_one(transaction_id=transaction_id)
+        user_transacrion = await self.__transaction_service.get_one(
+            transaction_id=transaction_id
+        )
 
         if user_transacrion.user_id != user.id:
             raise TransactionDoesNotBelongToUserException
@@ -97,14 +114,22 @@ class TransactionRollBackUseCase:
         if user_transacrion.status == TransactionStatusEnum.roll_backed:
             raise TransactionAlreadyRollbackedException
 
-        user_balance = await self.__user_service.get_user_balance_by_currency(user.id, user_transacrion.currency)
+        user_balance = await self.__user_service.get_user_balance_by_currency(
+            user.id, user_transacrion.currency
+        )
 
-        new_balance_amount: Decimal = self.__calculate_new_balance(user_balance.amount, user_transacrion.amount)
+        new_balance_amount: Decimal = self.__calculate_new_balance(
+            user_balance.amount, user_transacrion.amount
+        )
         if new_balance_amount < 0:
             raise NegativeBalanceException
-        await self.__user_service.update_balance(user_balance, amount=new_balance_amount)
+        await self.__user_service.update_balance(
+            user_balance, amount=new_balance_amount
+        )
 
-        transaction = await self.__transaction_service.set_transaction_rollback(transaction=user_transacrion)
+        transaction = await self.__transaction_service.set_transaction_rollback(
+            transaction=user_transacrion
+        )
         await self.__session.commit()
 
         return TransactionModel.model_validate(transaction)

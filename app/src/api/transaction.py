@@ -1,25 +1,34 @@
 import typing
 from datetime import datetime, timedelta
 
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.src.api.depedencies.transaction_dependencies import (
-    get_transaction_create_use_case, get_transaction_roll_back_use_case,
-    get_transaction_service)
+    get_transaction_create_use_case,
+    get_transaction_roll_back_use_case,
+    get_transaction_service,
+)
 from app.src.core.database import get_async_session
 from app.src.core.enums import CurrencyEnum
 from app.src.core.exceptions import BadRequestDataException
-from app.src.schemas.transaction_schemas import (RequestTransactionModel,
-                                                 TransactionModel)
+from app.src.schemas.transaction_schemas import (
+    RequestTransactionModel,
+    TransactionModel,
+)
 from app.src.services.flows.transaction_flows import (
-    CreateTransactionUseCase, TransactionRollBackUseCase)
+    CreateTransactionUseCase,
+    TransactionRollBackUseCase,
+)
 from app.src.services.transaction import (
-    TransactionService, get_not_rollbacked_deposit_amount,
-    get_not_rollbacked_transactions_count, get_not_rollbacked_withdraw_amount,
+    TransactionService,
+    get_not_rollbacked_deposit_amount,
+    get_not_rollbacked_transactions_count,
+    get_not_rollbacked_withdraw_amount,
     get_registered_and_deposit_users_count,
     get_registered_and_not_rollbacked_deposit_users_count,
-    get_transactions_count)
+    get_transactions_count,
+)
 from app.src.services.user import get_registered_users_count
 
 router = APIRouter()
@@ -27,18 +36,23 @@ router = APIRouter()
 
 @router.get("/transactions", status_code=status.HTTP_200_OK)
 async def get_transactions(
-    user_id: typing.Optional[int] = None, service: TransactionService = Depends(get_transaction_service)
+    user_id: typing.Optional[int] = None,
+    service: TransactionService = Depends(get_transaction_service),
 ) -> typing.List[TransactionModel] | None:
     return await service.get_all(user_id=user_id)
 
 
 @router.post(
-    "/{user_id}/transactions", response_model=typing.Optional[TransactionModel] | None, status_code=status.HTTP_200_OK
+    "/{user_id}/transactions",
+    response_model=typing.Optional[TransactionModel] | None,
+    status_code=status.HTTP_200_OK,
 )
 async def post_transaction(
     user_id: int,
     request: RequestTransactionModel,
-    transaction_use_case: CreateTransactionUseCase = Depends(get_transaction_create_use_case),
+    transaction_use_case: CreateTransactionUseCase = Depends(
+        get_transaction_create_use_case
+    ),
 ):
     if user_id < 0:
         raise BadRequestDataException(detail="Incorrect user id")
@@ -52,36 +66,60 @@ async def post_transaction(
     return transaction
 
 
-@router.patch("/{user_id}/transactions/{transaction_id}", response_model=typing.Optional[TransactionModel] | None)
+@router.patch(
+    "/{user_id}/transactions/{transaction_id}",
+    response_model=typing.Optional[TransactionModel] | None,
+)
 async def patch_rollback_transaction(
     user_id: int,
     transaction_id: int,
-    transaction_use_case: TransactionRollBackUseCase = Depends(get_transaction_roll_back_use_case),
+    transaction_use_case: TransactionRollBackUseCase = Depends(
+        get_transaction_roll_back_use_case
+    ),
 ):
-
     if user_id < 0 or transaction_id < 0:
         raise BadRequestDataException
 
-    transaction = await transaction_use_case.execute(user_id=user_id, transaction_id=transaction_id)
+    transaction = await transaction_use_case.execute(
+        user_id=user_id, transaction_id=transaction_id
+    )
     return transaction
 
 
-@router.get("/transactions/analysis", response_model=typing.Optional[list] | None, status_code=status.HTTP_200_OK)
-async def get_transaction_analysis(session: AsyncSession = Depends(get_async_session)) -> typing.List[dict]:
+@router.get(
+    "/transactions/analysis",
+    response_model=typing.Optional[list] | None,
+    status_code=status.HTTP_200_OK,
+)
+async def get_transaction_analysis(
+    session: AsyncSession = Depends(get_async_session),
+) -> typing.List[dict]:
     dt_gt = datetime.utcnow().date() - timedelta(weeks=1) + timedelta(days=1)
     dt_lt = datetime.utcnow().date()
     results = []
     for i in range(52):
-        registered_users_count = await get_registered_users_count(session, dt_gt=dt_gt, dt_lt=dt_lt)
-        registered_and_deposit_users_count = await get_registered_and_deposit_users_count(
+        registered_users_count = await get_registered_users_count(
             session, dt_gt=dt_gt, dt_lt=dt_lt
         )
-        registered_and_not_rollbacked_deposit_users_count = await get_registered_and_not_rollbacked_deposit_users_count(
+        registered_and_deposit_users_count = (
+            await get_registered_and_deposit_users_count(
+                session, dt_gt=dt_gt, dt_lt=dt_lt
+            )
+        )
+        registered_and_not_rollbacked_deposit_users_count = (
+            await get_registered_and_not_rollbacked_deposit_users_count(
+                session, dt_gt=dt_gt, dt_lt=dt_lt
+            )
+        )
+        not_rollbacked_deposit_amount = await get_not_rollbacked_deposit_amount(
             session, dt_gt=dt_gt, dt_lt=dt_lt
         )
-        not_rollbacked_deposit_amount = await get_not_rollbacked_deposit_amount(session, dt_gt=dt_gt, dt_lt=dt_lt)
-        not_rollbacked_withdraw_amount = await get_not_rollbacked_withdraw_amount(session, dt_gt=dt_gt, dt_lt=dt_lt)
-        transactions_count = await get_transactions_count(session, dt_gt=dt_gt, dt_lt=dt_lt)
+        not_rollbacked_withdraw_amount = await get_not_rollbacked_withdraw_amount(
+            session, dt_gt=dt_gt, dt_lt=dt_lt
+        )
+        transactions_count = await get_transactions_count(
+            session, dt_gt=dt_gt, dt_lt=dt_lt
+        )
         not_rollbacked_transactions_count = await get_not_rollbacked_transactions_count(
             session, dt_gt=dt_gt, dt_lt=dt_lt
         )
