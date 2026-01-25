@@ -1,8 +1,10 @@
 from decimal import Decimal
 from typing import List
 
-from sqlalchemy import ForeignKey, UniqueConstraint
+from sqlalchemy import ForeignKey, Transaction, UniqueConstraint
 from sqlalchemy.orm import Mapped, mapped_column, relationship
+from sqlalchemy.ext.hybrid import hybrid_property
+from werkzeug.security import generate_password_hash, check_password_hash
 
 from app.src.core.models import BaseModel
 
@@ -10,12 +12,28 @@ from app.src.core.models import BaseModel
 class User(BaseModel):
     __tablename__ = "user"
 
-    email: Mapped[str] = mapped_column(nullable=True, unique=True)
+    first_name: Mapped[str] = mapped_column(nullable=False)
+    last_name: Mapped[str] = mapped_column(nullable=False)
+    email: Mapped[str] = mapped_column(nullable=False, unique=True)
+    password_hash: Mapped[str] = mapped_column(nullable=False)
     status: Mapped[str] = mapped_column(nullable=True)
 
     user_balance: Mapped[List["UserBalance"]] = relationship(
         "UserBalance", back_populates="owner"
     )
+    transaction: Mapped[List["Transaction"]] = relationship(
+        "Transaction", back_populates="owner"
+    )
+
+    @hybrid_property
+    def fullname(self):
+        return f"{self.first_name} {self.last_name}"
+
+    def set_password(self, password):
+        self.password_hash = generate_password_hash(password)
+
+    def check_password(self, password):
+        return check_password_hash(self.password_hash, password)
 
 
 class UserBalance(BaseModel):
