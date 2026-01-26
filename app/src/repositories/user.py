@@ -26,7 +26,14 @@ class UserRepository(SQLAlchemyRepository):
         return result.scalars()
 
     async def create_user(self, model: RequestUserModel) -> User:
-        user = User(email=model.email, status=UserStatusEnum.ACTIVE)
+        user = User(
+            email=model.email,
+            first_name=model.first_name,
+            last_name=model.last_name,
+            status=UserStatusEnum.ACTIVE,
+        )
+
+        user.set_password(model.password)
 
         self.session.add(user)
         balances = [
