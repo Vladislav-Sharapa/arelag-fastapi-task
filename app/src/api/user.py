@@ -1,6 +1,6 @@
 import typing
 
-from fastapi import APIRouter, Depends, status
+from fastapi import APIRouter, Depends, status, Path
 
 from app.src.api.depedencies.user_dependencies import get_user_service
 from app.src.schemas.user_schemas import (
@@ -34,8 +34,8 @@ async def post_user(
 
 @router.patch("/users/{user_id}", response_model=typing.Optional[UserModel] | None)
 async def patch_user(
-    user_id: int,
     user: RequestUserUpdateModel,
+    user_id: int = Path(ge=0, description="User ID must be positive integer"),
     service: UserService = Depends(get_user_service),
 ):
     return await service.patch_user(id=user_id, user=user)
