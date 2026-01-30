@@ -1,7 +1,7 @@
-import typing
+from typing import Optional, List
 from datetime import datetime, timedelta
 
-from fastapi import APIRouter, Depends, status
+from fastapi import APIRouter, Depends, Path, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.src.api.depedencies.transaction_dependencies import (
@@ -10,8 +10,6 @@ from app.src.api.depedencies.transaction_dependencies import (
     get_transaction_service,
 )
 from app.src.core.database import get_async_session
-from app.src.core.enums import CurrencyEnum
-from app.src.core.exceptions import BadRequestDataException
 from app.src.schemas.transaction_schemas import (
     RequestTransactionModel,
     TransactionModel,
@@ -36,50 +34,38 @@ router = APIRouter()
 
 @router.get("/transactions", status_code=status.HTTP_200_OK)
 async def get_transactions(
-    user_id: typing.Optional[int] = None,
+    user_id: Optional[int] = None,
     service: TransactionService = Depends(get_transaction_service),
-) -> typing.List[TransactionModel] | None:
+) -> List[TransactionModel] | None:
     return await service.get_all(user_id=user_id)
 
 
 @router.post(
     "/{user_id}/transactions",
-    response_model=typing.Optional[TransactionModel] | None,
     status_code=status.HTTP_200_OK,
 )
 async def post_transaction(
-    user_id: int,
     request: RequestTransactionModel,
+    user_id: int = Path(ge=0, description="User ID must be positive integer"),
     transaction_use_case: CreateTransactionUseCase = Depends(
         get_transaction_create_use_case
     ),
-):
-    if user_id < 0:
-        raise BadRequestDataException(detail="Incorrect user id")
-    if request.currency not in {str(x) for x in CurrencyEnum}:
-        raise BadRequestDataException(detail="Currency does not exist")
-    if request.amount == 0:
-        raise BadRequestDataException(detail="Transaction can not have zero amount")
-
+) -> TransactionModel | None:
     transaction = await transaction_use_case.execute(user_id=user_id, request=request)
 
     return transaction
 
 
-@router.patch(
-    "/{user_id}/transactions/{transaction_id}",
-    response_model=typing.Optional[TransactionModel] | None,
-)
+@router.patch("/{user_id}/transactions/{transaction_id}")
 async def patch_rollback_transaction(
-    user_id: int,
-    transaction_id: int,
+    user_id: int = Path(ge=0, description="User ID must be positive integer"),
+    transaction_id: int = Path(
+        ge=0, description="Transaction ID must be positive integer"
+    ),
     transaction_use_case: TransactionRollBackUseCase = Depends(
         get_transaction_roll_back_use_case
     ),
-):
-    if user_id < 0 or transaction_id < 0:
-        raise BadRequestDataException
-
+) -> TransactionModel | None:
     transaction = await transaction_use_case.execute(
         user_id=user_id, transaction_id=transaction_id
     )
@@ -88,12 +74,12 @@ async def patch_rollback_transaction(
 
 @router.get(
     "/transactions/analysis",
-    response_model=typing.Optional[list] | None,
+    response_model=Optional[list] | None,
     status_code=status.HTTP_200_OK,
 )
 async def get_transaction_analysis(
     session: AsyncSession = Depends(get_async_session),
-) -> typing.List[dict]:
+) -> List[dict]:
     dt_gt = datetime.utcnow().date() - timedelta(weeks=1) + timedelta(days=1)
     dt_lt = datetime.utcnow().date()
     results = []
