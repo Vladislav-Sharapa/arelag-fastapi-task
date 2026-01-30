@@ -64,8 +64,6 @@ class UserService:
         return ResponseUserModel.model_validate(user)
 
     async def patch_user(self, id: int, user: RequestUserUpdateModel) -> UserModel:
-        if id < 0:
-            raise BadRequestDataException
         db_user: User = await self.get_user(id)
         if db_user.status == user.status:
             if user.status == UserStatusEnum.BLOCKED:
