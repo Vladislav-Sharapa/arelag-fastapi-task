@@ -42,10 +42,19 @@ class UserService:
             raise UserNotExistsException
         return user
 
+    async def get_active_user_by_email(self, email: str) -> User:
+        user: User = await self.__user_repository.get_by_email(email=email)
+        if not user:
+            raise UserNotExistsException
+        if user.status == UserStatusEnum.BLOCKED:
+            raise UserAlreadyBlockedException
+
+        return user
+
     async def get_active_user(self, user_id: int) -> User:
         user = await self.get_user(user_id=user_id)
         if user.status == UserStatusEnum.BLOCKED:
-            raise
+            raise UserAlreadyBlockedException
         return user
 
     async def get_all(self, filters: Optional[UserFilter]) -> list[ResponseUserModel]:

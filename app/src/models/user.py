@@ -4,7 +4,6 @@ from typing import List
 from sqlalchemy import ForeignKey, Transaction, UniqueConstraint
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from sqlalchemy.ext.hybrid import hybrid_property
-from werkzeug.security import generate_password_hash, check_password_hash
 
 from app.src.core.models import BaseModel
 
@@ -18,6 +17,7 @@ class User(BaseModel):
     password_hash: Mapped[str] = mapped_column(nullable=False)
     status: Mapped[str] = mapped_column(nullable=True)
 
+    roles: Mapped[List["Role"]] = relationship("Role", back_populates="owner")
     user_balance: Mapped[List["UserBalance"]] = relationship(
         "UserBalance", back_populates="owner"
     )
@@ -29,11 +29,13 @@ class User(BaseModel):
     def fullname(self):
         return f"{self.first_name} {self.last_name}"
 
-    def set_password(self, password):
-        self.password_hash = generate_password_hash(password)
 
-    def check_password(self, password):
-        return check_password_hash(self.password_hash, password)
+class Role(BaseModel):
+    __tablename__ = "roles"
+
+    name: Mapped[str] = mapped_column(nullable=False, unique=True)
+    user_id: Mapped[int] = mapped_column(ForeignKey("user.id"), nullable=False)
+    owner: Mapped["User"] = relationship("User", back_populates="roles")
 
 
 class UserBalance(BaseModel):

@@ -9,6 +9,7 @@ from app.src.core.enums import CurrencyEnum
 from app.src.core.repository import SQLAlchemyRepository
 from app.src.models.user import User, UserBalance
 from app.src.schemas.user_schemas import RequestUserModel, UserFilter, UserStatusEnum
+from app.src.utils.auth_security import get_password_hash
 
 
 class UserRepository(SQLAlchemyRepository):
@@ -33,7 +34,7 @@ class UserRepository(SQLAlchemyRepository):
             status=UserStatusEnum.ACTIVE,
         )
 
-        user.set_password(model.password)
+        user.password_hash = get_password_hash(model.password)
 
         self.session.add(user)
         balances = [
