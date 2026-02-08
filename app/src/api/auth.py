@@ -6,17 +6,23 @@ from app.src.schemas.user_schemas import UserModel
 from app.src.api.depedencies.auth_dependencies import (
     get_auth_service,
     get_current_user_for_refresh,
+    login_attempts_dependency,
 )
 
-router = APIRouter()
+router = APIRouter(
+    tags=[
+        "auth",
+    ]
+)
 
 
 @router.post("/login")
 async def login(
     user: RequestUserLoginInfoModel,
     auth_service: AuthService = Depends(get_auth_service),
+    key: str = Depends(login_attempts_dependency),
 ) -> TokenInfo:
-    token_info = await auth_service.login(user)
+    token_info = await auth_service.login(user, key)
 
     return token_info
 
@@ -29,13 +35,3 @@ async def refresh_access_token(
     access_token = await auth_service.refresh(user)
 
     return access_token
-
-
-# @router.get("/user/me")
-# async def get_me(
-#     user: UserModel = Depends(get_current_user_for_refresh)
-# ):
-#     return {
-#         "email": user.email,
-#         "id": user.id
-#     }

@@ -1,4 +1,5 @@
 from sqlalchemy.ext.asyncio import AsyncSession
+from app.src.core.redis import RedisClient
 from app.src.exceptions.auth_exceptions import InvalidUserPasswordException
 
 from app.src.schemas.auth_schemas import RequestUserLoginInfoModel, TokenInfo
@@ -10,17 +11,20 @@ from app.src.utils.jwt import JWTHandler
 
 
 class AuthService:
-    def __init__(self, session: AsyncSession):
+    def __init__(self, session: AsyncSession, redis: RedisClient):
         self.user_sevice: UserService = UserService(session)
+        self.__redis_client = redis
 
     async def register(self):
         pass
 
-    async def login(self, request: RequestUserLoginInfoModel) -> TokenInfo:
-        user = await self.__authenticate(request.username, request.password)
+    async def login(self, request: RequestUserLoginInfoModel, key: str) -> TokenInfo:
+        user = await self.__authenticate(request.username, request.password, key)
 
         access_token = await JWTHandler.create_access_token(user)
         refresh_token = await JWTHandler.create_refresh_token(user)
+
+        await self.__reset_attempts(key)
 
         return TokenInfo(
             access_token=access_token, refresh_token=refresh_token, token_type="Bearer"
@@ -31,7 +35,7 @@ class AuthService:
 
         return TokenInfo(access_token=access_token)
 
-    async def __authenticate(self, email: str, password: str) -> UserModel:
+    async def __authenticate(self, email: str, password: str, key: str) -> UserModel:
         """
         Authenticate a user by verifying their email and password.
 
@@ -52,5 +56,31 @@ class AuthService:
         """
         user: User = await self.user_sevice.get_active_user_by_email(email=email)
         if not verify_password(password, user.password_hash):
+            await self.__track_attempts(key)
             raise InvalidUserPasswordException
         return UserModel.model_validate(user)
+
+    async def __track_attempts(self, key: str) -> None:
+        """
+        Track and update the number of attempts.
+
+        This method is called after
+        unsuccessful user authentication
+        """
+        async with self.__redis_client as storage:
+            attempts = await storage.get(key)
+
+            if not attempts:
+                await storage.set(key, 1)
+            else:
+                await storage.set(key, attempts + 1)
+
+    async def __reset_attempts(self, key: str):
+        """
+        Reset the attempt counter for the given key in Redis.
+
+        This method is typically called after a successful user authentication
+        to clear any previously recorded failed login attempts.
+        """
+        async with self.__redis_client as storage:
+            await storage.delete(key)

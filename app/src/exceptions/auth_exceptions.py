@@ -1,11 +1,13 @@
-from fastapi import HTTPException, status
+from fastapi import status
+
+from app.src.core.exceptions import BaseHttpApplicationException
 
 
-class InvalidUserPasswordException(HTTPException):
-    status_code = (status.HTTP_401_UNAUTHORIZED,)
-    detail = ("Incorrect password",)
+class InvalidUserPasswordException(BaseHttpApplicationException):
+    status_code = status.HTTP_401_UNAUTHORIZED
+    detail = "Incorrect password"
 
 
-class CredentialException(HTTPException):
-    status_code = (status.HTTP_401_UNAUTHORIZED,)
-    detail = ("Could not validate credentials",)
+class CredentialException(BaseHttpApplicationException):
+    status_code = status.HTTP_401_UNAUTHORIZED
+    detail = "Could not validate credentials"
