@@ -61,7 +61,7 @@ class UserService:
         users = await self.__user_repository.get_users_with_balancies(filters=filters)
         return [ResponseUserModel.model_validate(user) for user in users]
 
-    async def create_user(self, model: RequestUserModel) -> ResponseUserModel:
+    async def create_user(self, model: RequestUserModel) -> User:
         if not model.email:
             raise BadRequestDataException
 
@@ -70,7 +70,7 @@ class UserService:
             raise UserAlreadyExistsException
 
         user = await self.__user_repository.create_user(model)
-        return ResponseUserModel.model_validate(user)
+        return user
 
     async def patch_user(self, id: int, user: RequestUserUpdateModel) -> UserModel:
         db_user: User = await self.get_user(id)

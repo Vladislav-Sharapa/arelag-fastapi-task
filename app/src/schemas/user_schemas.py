@@ -6,6 +6,7 @@ from pydantic import BaseModel, ConfigDict, EmailStr, field_validator
 from pydantic.v1 import root_validator
 
 from app.src.core.enums import CurrencyEnum
+from app.src.schemas.auth import TokenInfo
 
 
 class UserStatusEnum(StrEnum):
@@ -59,6 +60,7 @@ class ResponseUserModel(BaseModel):
     status: Optional[UserStatusEnum] = None
     created: Optional[datetime] = None
     user_balance: Optional[List[ResponseUserBalanceModel]] = None
+    token_info: TokenInfo = None
 
     model_config = ConfigDict(from_attributes=True)
 

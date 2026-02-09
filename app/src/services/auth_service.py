@@ -2,10 +2,10 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.src.core.redis import RedisClient
 from app.src.exceptions.auth_exceptions import InvalidUserPasswordException
 
-from app.src.schemas.auth_schemas import RequestUserLoginInfoModel, TokenInfo
+from app.src.schemas.auth import RequestUserLoginInfoModel, TokenInfo
 from app.src.utils.auth_security import verify_password
 from app.src.models.user import User
-from app.src.schemas.user_schemas import UserModel
+from app.src.schemas.user_schemas import RequestUserModel, ResponseUserModel, UserModel
 from app.src.services.user import UserService
 from app.src.utils.jwt import JWTHandler
 
@@ -15,25 +15,40 @@ class AuthService:
         self.user_sevice: UserService = UserService(session)
         self.__redis_client = redis
 
-    async def register(self):
-        pass
+    async def register(self, request_user: RequestUserModel) -> ResponseUserModel:
+        user = await self.user_sevice.create_user(request_user)
+
+        token_info = await self.__generate_tokens(user)
+
+        response = ResponseUserModel.model_validate(user)
+        response.token_info = token_info
+
+        return response
 
     async def login(self, request: RequestUserLoginInfoModel, key: str) -> TokenInfo:
         user = await self.__authenticate(request.username, request.password, key)
 
-        access_token = await JWTHandler.create_access_token(user)
-        refresh_token = await JWTHandler.create_refresh_token(user)
+        token_info = await self.__generate_tokens(user)
 
         await self.__reset_attempts(key)
 
-        return TokenInfo(
-            access_token=access_token, refresh_token=refresh_token, token_type="Bearer"
-        )
+        return token_info
 
     async def refresh(self, user: UserModel) -> TokenInfo:
         access_token = JWTHandler.create_access_token(user)
 
         return TokenInfo(access_token=access_token)
+
+    async def __generate_tokens(self, user: UserModel) -> TokenInfo:
+        """
+        Generate access and refresh tokens
+        """
+        access_token = await JWTHandler.create_access_token(user)
+        refresh_token = await JWTHandler.create_refresh_token(user)
+
+        return TokenInfo(
+            access_token=access_token, refresh_token=refresh_token, token_type="Bearer"
+        )
 
     async def __authenticate(self, email: str, password: str, key: str) -> UserModel:
         """

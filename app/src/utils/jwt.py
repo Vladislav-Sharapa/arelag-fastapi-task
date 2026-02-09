@@ -5,7 +5,7 @@ import uuid
 import jwt
 
 from app.src.core.config import config
-from app.src.schemas.auth_schemas import (
+from app.src.schemas.auth import (
     AccessTokenPayload,
     RefreshTokenPayload,
     TokenTypeEnum,

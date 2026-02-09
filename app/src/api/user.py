@@ -4,7 +4,6 @@ from fastapi import APIRouter, Depends, status, Path
 
 from app.src.api.depedencies.user_dependencies import get_user_service
 from app.src.schemas.user_schemas import (
-    RequestUserModel,
     RequestUserUpdateModel,
     ResponseUserModel,
     UserFilter,
@@ -23,13 +22,6 @@ async def get_users(
     service: UserService = Depends(get_user_service),
 ):
     return await service.get_all(filters=filters)
-
-
-@router.post("/users", status_code=status.HTTP_200_OK)
-async def post_user(
-    user: RequestUserModel, service: UserService = Depends(get_user_service)
-):
-    return await service.create_user(user)
 
 
 @router.patch("/users/{user_id}", response_model=typing.Optional[UserModel] | None)

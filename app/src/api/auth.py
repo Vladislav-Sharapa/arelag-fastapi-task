@@ -1,9 +1,9 @@
 from fastapi import APIRouter, Depends
 
-from app.src.schemas.auth_schemas import RequestUserLoginInfoModel, TokenInfo
+from app.src.schemas.auth import RequestUserLoginInfoModel, TokenInfo
 from app.src.services.auth_service import AuthService
-from app.src.schemas.user_schemas import UserModel
-from app.src.api.depedencies.auth_dependencies import (
+from app.src.schemas.user_schemas import RequestUserModel, ResponseUserModel, UserModel
+from app.src.api.depedencies.auth import (
     get_auth_service,
     get_current_user_for_refresh,
     login_attempts_dependency,
@@ -35,3 +35,12 @@ async def refresh_access_token(
     access_token = await auth_service.refresh(user)
 
     return access_token
+
+
+@router.post("/register")
+async def register(
+    user: RequestUserModel, auth_service: AuthService = Depends(get_auth_service)
+) -> ResponseUserModel:
+    response = await auth_service.register(user)
+
+    return response
