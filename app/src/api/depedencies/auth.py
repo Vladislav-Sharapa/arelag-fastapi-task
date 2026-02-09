@@ -5,7 +5,7 @@ from app.src.api.depedencies.user_dependencies import get_user_service
 from app.src.core.config import config
 from app.src.core.redis import RedisClient, get_redis_client
 from app.src.exceptions.auth_exceptions import CredentialException
-from app.src.schemas.auth_schemas import RequestUserLoginInfoModel, TokenTypeEnum
+from app.src.schemas.auth import RequestUserLoginInfoModel, TokenTypeEnum
 from fastapi import status
 from app.src.models.user import User
 from app.src.schemas.user_schemas import UserModel

@@ -9,7 +9,7 @@ class TokenTypeEnum(StrEnum):
 
 
 class RoleEnum(StrEnum):
-    USER = ("user",)
+    USER = "user"
     ADMIN = "admin"
 
 
