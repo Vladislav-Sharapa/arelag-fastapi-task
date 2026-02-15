@@ -42,17 +42,26 @@ class UserService:
             raise UserNotExistsException
         return user
 
+    async def get_active_user_by_email(self, email: str) -> User:
+        user: User = await self.__user_repository.get_by_email(email=email)
+        if not user:
+            raise UserNotExistsException
+        if user.status == UserStatusEnum.BLOCKED:
+            raise UserAlreadyBlockedException
+
+        return user
+
     async def get_active_user(self, user_id: int) -> User:
         user = await self.get_user(user_id=user_id)
         if user.status == UserStatusEnum.BLOCKED:
-            raise
+            raise UserAlreadyBlockedException
         return user
 
     async def get_all(self, filters: Optional[UserFilter]) -> list[ResponseUserModel]:
         users = await self.__user_repository.get_users_with_balancies(filters=filters)
         return [ResponseUserModel.model_validate(user) for user in users]
 
-    async def create_user(self, model: RequestUserModel) -> ResponseUserModel:
+    async def create_user(self, model: RequestUserModel) -> User:
         if not model.email:
             raise BadRequestDataException
 
@@ -61,7 +70,7 @@ class UserService:
             raise UserAlreadyExistsException
 
         user = await self.__user_repository.create_user(model)
-        return ResponseUserModel.model_validate(user)
+        return user
 
     async def patch_user(self, id: int, user: RequestUserUpdateModel) -> UserModel:
         db_user: User = await self.get_user(id)
