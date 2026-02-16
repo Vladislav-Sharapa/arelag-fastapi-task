@@ -57,7 +57,7 @@ class JWTHandler:
     @staticmethod
     async def create_access_token(user: UserModel) -> str:
         jwt_payload = AccessTokenPayload(
-            sub=user.email, email=user.email, user_id=user.id
+            sub=user.email, email=user.email, user_id=user.id, role=user.role
         )
         token = await JWTHandler.__create_token(
             token_type=TokenTypeEnum.ACCESS_TOKEN_TYPE,
