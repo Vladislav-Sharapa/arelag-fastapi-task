@@ -1,5 +1,5 @@
-from typing import Annotated, List
-from fastapi import Depends, HTTPException
+from typing import Annotated
+from fastapi import Depends, HTTPException, Path
 from fastapi.security import OAuth2PasswordBearer
 from app.src.api.depedencies.user_dependencies import get_user_service
 from app.src.core.config import config
@@ -58,17 +58,6 @@ def get_current_token_payload(token: Annotated[str, Depends(oauth2_scheme)]):
     return payload
 
 
-def role_required(roles: List[str]):
-    def role_checker(current_user: User = Depends(get_current_user)):
-        if not any(role.name in roles for role in current_user.roles):
-            raise HTTPException(
-                status_code=status.HTTP_403_FORBIDDEN, detail="Operation not permitted"
-            )
-        return current_user
-
-    return role_checker
-
-
 class UserFetchFromToken:
     """
     Allows to get data from a token depending on its type.
@@ -108,3 +97,18 @@ class UserFetchFromToken:
 
 get_current_user = UserFetchFromToken(TokenTypeEnum.ACCESS_TOKEN_TYPE)
 get_current_user_for_refresh = UserFetchFromToken(TokenTypeEnum.REFRESH_TOKEN_TYPE)
+
+
+async def check_user_ownership(
+    user_id: int = Path(ge=0),
+    current_user: User = Depends(get_current_user),
+) -> None:
+    if current_user.id != user_id:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="You can only access your own resources",
+        )
+
+
+def get_current_role(payload: dict = Depends(get_current_token_payload)) -> str:
+    return payload.get("role", None)

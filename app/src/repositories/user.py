@@ -68,6 +68,13 @@ class UserRepository(SQLAlchemyRepository):
         db_user.status = status
         return db_user
 
+    async def update_role(self, user: User, role: str) -> User:
+        db_user = user
+        if db_user not in self.session:
+            db_user: User = await self.get(user.id)
+        db_user.role = role
+        return db_user
+
 
 class UserBalanceRepository(SQLAlchemyRepository):
     model: UserBalance = UserBalance
