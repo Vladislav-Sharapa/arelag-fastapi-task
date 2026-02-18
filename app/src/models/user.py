@@ -6,6 +6,7 @@ from sqlalchemy.orm import Mapped, mapped_column, relationship
 from sqlalchemy.ext.hybrid import hybrid_property
 
 from app.src.core.models import BaseModel
+from app.src.schemas.auth import RoleEnum
 
 
 class User(BaseModel):
@@ -17,7 +18,8 @@ class User(BaseModel):
     password_hash: Mapped[str] = mapped_column(nullable=False)
     status: Mapped[str] = mapped_column(nullable=True)
 
-    roles: Mapped[List["Role"]] = relationship("Role", back_populates="owner")
+    role: Mapped[str] = mapped_column(nullable=False, default=RoleEnum.USER)
+
     user_balance: Mapped[List["UserBalance"]] = relationship(
         "UserBalance", back_populates="owner"
     )
@@ -28,14 +30,6 @@ class User(BaseModel):
     @hybrid_property
     def fullname(self):
         return f"{self.first_name} {self.last_name}"
-
-
-class Role(BaseModel):
-    __tablename__ = "roles"
-
-    name: Mapped[str] = mapped_column(nullable=False, unique=True)
-    user_id: Mapped[int] = mapped_column(ForeignKey("user.id"), nullable=False)
-    owner: Mapped["User"] = relationship("User", back_populates="roles")
 
 
 class UserBalance(BaseModel):

@@ -70,6 +70,7 @@ class UserModel(BaseModel):
     email: Optional[str] = None
     status: Optional[UserStatusEnum] = None
     created: Optional[datetime] = None
+    role: Optional[str] = None
 
     model_config = ConfigDict(from_attributes=True)
 

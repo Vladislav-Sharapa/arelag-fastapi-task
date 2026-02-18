@@ -8,6 +8,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.src.core.exceptions import BadRequestDataException
 from app.src.exceptions.transaction_exceptions import (
     CreateTransactionForBlockedUserException,
+    RoleNotExistsException,
 )
 from app.src.exceptions.user_exceptions import (
     NegativeBalanceException,
@@ -19,6 +20,7 @@ from app.src.exceptions.user_exceptions import (
 )
 from app.src.models.user import User, UserBalance
 from app.src.repositories.user import UserBalanceRepository, UserRepository
+from app.src.schemas.auth import RoleEnum
 from app.src.schemas.user_schemas import (
     RequestUserModel,
     RequestUserUpdateModel,
@@ -98,6 +100,14 @@ class UserService:
             raise UserBalanceNotFound
 
         return user_balance
+
+    async def update_role(self, user_id: int, role: str):
+        if role not in list(RoleEnum):
+            raise RoleNotExistsException
+        user = await self.get_active_user(user_id)
+        user = await self.__user_repository.update_role(user, role)
+        await self.__session.commit()
+        return UserModel.model_validate(user)
 
     async def update_balance(
         self, balance: UserBalance, amount: Decimal

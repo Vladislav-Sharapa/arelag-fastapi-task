@@ -4,12 +4,18 @@ from datetime import datetime, timedelta
 from fastapi import APIRouter, Depends, Path, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.src.api.depedencies.auth import check_user_ownership
 from app.src.api.depedencies.transaction_dependencies import (
     get_transaction_create_use_case,
     get_transaction_roll_back_use_case,
     get_transaction_service,
 )
 from app.src.core.database import get_async_session
+from app.src.core.permissions import (
+    AdminPermission,
+    PermissionsDependency,
+    UserPermission,
+)
 from app.src.schemas.transaction_schemas import (
     RequestTransactionModel,
     TransactionModel,
@@ -29,7 +35,7 @@ from app.src.services.transaction import (
 )
 from app.src.services.user import get_registered_users_count
 
-router = APIRouter()
+router = APIRouter(dependencies=[Depends(PermissionsDependency([UserPermission]))])
 
 
 @router.get("/transactions", status_code=status.HTTP_200_OK)
@@ -43,6 +49,7 @@ async def get_transactions(
 @router.post(
     "/{user_id}/transactions",
     status_code=status.HTTP_200_OK,
+    dependencies=[Depends(check_user_ownership)],
 )
 async def post_transaction(
     request: RequestTransactionModel,
@@ -56,7 +63,10 @@ async def post_transaction(
     return transaction
 
 
-@router.patch("/{user_id}/transactions/{transaction_id}")
+@router.patch(
+    "/{user_id}/transactions/{transaction_id}",
+    dependencies=[Depends(check_user_ownership)],
+)
 async def patch_rollback_transaction(
     user_id: int = Path(ge=0, description="User ID must be positive integer"),
     transaction_id: int = Path(
@@ -76,6 +86,7 @@ async def patch_rollback_transaction(
     "/transactions/analysis",
     response_model=Optional[list] | None,
     status_code=status.HTTP_200_OK,
+    dependencies=[Depends(PermissionsDependency(AdminPermission))],
 )
 async def get_transaction_analysis(
     session: AsyncSession = Depends(get_async_session),

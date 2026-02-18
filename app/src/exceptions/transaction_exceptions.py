@@ -18,8 +18,18 @@ class UpdateTransactionForBlockedUserException(Exception): ...
 class TransactionAlreadyRollbackedException(Exception): ...
 
 
+class RoleNotExistsException(Exception): ...
+
+
 # FastApi exception handlers
 def register_transaction_error_handlers(app: FastAPI):
+    @app.exception_handler(RoleNotExistsException)
+    async def role_not_exists_handler(request, exc):
+        return JSONResponse(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            content={"detail": "There is no such role"},
+        )
+
     @app.exception_handler(CreateTransactionForBlockedUserException)
     async def create_transaction_for_blocked_user_hadler(request, exc):
         return JSONResponse(

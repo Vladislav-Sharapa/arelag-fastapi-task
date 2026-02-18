@@ -1,5 +1,5 @@
 from enum import StrEnum
-from typing import List, Optional
+from typing import Optional
 from pydantic import BaseModel, ConfigDict
 
 
@@ -11,6 +11,7 @@ class TokenTypeEnum(StrEnum):
 class RoleEnum(StrEnum):
     USER = "user"
     ADMIN = "admin"
+    SUPER_ADMIN = "super_admin"
 
 
 class TokenData(BaseModel):
@@ -21,9 +22,7 @@ class AccessTokenPayload(BaseModel):
     sub: Optional[str] = None
     email: Optional[str] = None
     user_id: Optional[int] = None
-    role: List[str] = [
-        "user",
-    ]
+    role: Optional[str] = None
 
     model_config = ConfigDict(from_attributes=True)
 
