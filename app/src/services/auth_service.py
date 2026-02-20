@@ -9,7 +9,8 @@ from app.src.utils.auth_security import verify_password
 from app.src.models.user import User
 from app.src.schemas.user_schemas import RequestUserModel, ResponseUserModel, UserModel
 from app.src.services.user import UserService
-from app.src.utils.jwt import JWTHandler
+from app.src.utils.jwt import JWTHandler, get_refresh_token_payload
+from app.src.utils.token_handlers import get_current_auth_user
 
 
 class AuthService:
@@ -37,7 +38,10 @@ class AuthService:
 
         return token_info
 
-    async def refresh(self, user: UserModel) -> TokenInfo:
+    async def refresh(self, token: str) -> TokenInfo:
+        token_payload = get_refresh_token_payload(token)
+        user = await get_current_auth_user(token_payload, self.user_sevice)
+
         access_token = JWTHandler.create_access_token(user)
 
         return TokenInfo(access_token=access_token)
