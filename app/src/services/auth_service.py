@@ -1,3 +1,5 @@
+from app.src.core.config import config
+from fastapi import HTTPException, status
 from sqlalchemy.ext.asyncio import AsyncSession
 from app.src.core.redis import RedisClient
 from app.src.exceptions.auth_exceptions import InvalidUserPasswordException
@@ -25,7 +27,8 @@ class AuthService:
 
         return response
 
-    async def login(self, request: RequestUserLoginInfoModel, key: str) -> TokenInfo:
+    async def login(self, request: RequestUserLoginInfoModel) -> TokenInfo:
+        key = await self.__check_login_attempts(request.username)
         user = await self.__authenticate(request.username, request.password, key)
 
         token_info = await self.__generate_tokens(user)
@@ -74,6 +77,21 @@ class AuthService:
             await self.__track_attempts(key)
             raise InvalidUserPasswordException
         return UserModel.model_validate(user)
+
+    async def __check_login_attempts(self, username: str) -> str:
+        """Method that checks login attempts for a given user email."""
+
+        key = f"login_attempts:{username}"
+
+        async with self.__redis_client as storage:
+            attempts = await storage.get(key)
+
+        if attempts and int(attempts) >= config.auth.MAX_LOGIN_ATTEMPTS:
+            raise HTTPException(
+                status_code=status.HTTP_429_TOO_MANY_REQUESTS,
+                detail="Too many failed login attempts. Try again later.",
+            )
+        return key
 
     async def __track_attempts(self, key: str) -> None:
         """
