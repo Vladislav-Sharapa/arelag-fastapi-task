@@ -1,0 +1,13 @@
+repos:
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: v0.14.13
+    hooks:
+      - id: ruff-check
+        name: Ruff linting
+        args: [--exit-non-zero-on-fix]  
+        types_or: [python, pyi]
+
+      - id: ruff-format
+        name: Ruff formatting
+        types_or: [python, pyi]
+
