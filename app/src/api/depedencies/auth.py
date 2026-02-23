@@ -2,6 +2,7 @@ from typing import Annotated
 from fastapi import Depends, HTTPException, Path
 from fastapi.security import OAuth2PasswordBearer
 from app.src.api.depedencies.user_dependencies import get_user_service
+from app.src.core.config import config
 from app.src.core.redis import RedisClient, get_redis_client
 from fastapi import status
 from app.src.services.user import UserService
@@ -17,7 +18,9 @@ oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/login")
 
 def get_auth_service(
     session: AsyncSession = Depends(get_async_session),
-    redis_client: RedisClient = Depends(get_redis_client),
+    redis_client: RedisClient = Depends(
+        get_redis_client(ttl=config.redis.TTL_PASSWORD_ATTEMPS)
+    ),
 ) -> AuthService:
     return AuthService(session=session, redis=redis_client)
 
