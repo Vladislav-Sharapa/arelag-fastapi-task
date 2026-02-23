@@ -7,7 +7,7 @@ from app.src.core.redis import RedisClient, get_redis_client
 from fastapi import status
 from app.src.services.user import UserService
 from app.src.utils.jwt import get_access_token_payload
-from app.src.services.auth_service import AuthService
+from app.src.services.auth.auth_service import AuthService
 from app.src.core.database import get_async_session
 from sqlalchemy.ext.asyncio import AsyncSession
 
