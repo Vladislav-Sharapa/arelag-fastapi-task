@@ -1,6 +1,7 @@
 from enum import StrEnum
+import re
 from typing import Optional
-from pydantic import BaseModel, ConfigDict, field_validator
+from pydantic import BaseModel, ConfigDict, EmailStr, field_validator
 
 
 class PasswordValidationMixin:
@@ -22,6 +23,7 @@ class PasswordValidationMixin:
 class TokenTypeEnum(StrEnum):
     ACCESS_TOKEN_TYPE = "access"
     REFRESH_TOKEN_TYPE = "refresh"
+    RESET_TOKEN_TYPE = "reset"
 
 
 class RoleEnum(StrEnum):
@@ -59,3 +61,23 @@ class TokenInfo(BaseModel):
 class RequestUserLoginInfoModel(BaseModel):
     username: str
     password: str
+
+
+class RequestDataForResetPassword(BaseModel, PasswordValidationMixin):
+    email: EmailStr
+    password: str
+    code: str
+
+    @field_validator("code")
+    def validate_code(cls, v):
+        if not re.match(r"^\d{6}$", v):
+            raise ValueError("Code must be exactly 6 digits (0-9)")
+        return v
+
+
+class RequestEmailForNotification(BaseModel):
+    email: EmailStr
+
+
+class ResetPasswordTokenPayload(BaseModel):
+    email: str

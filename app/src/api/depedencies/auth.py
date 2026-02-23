@@ -2,11 +2,12 @@ from typing import Annotated
 from fastapi import Depends, HTTPException, Path
 from fastapi.security import OAuth2PasswordBearer
 from app.src.api.depedencies.user_dependencies import get_user_service
+from app.src.core.config import config
 from app.src.core.redis import RedisClient, get_redis_client
 from fastapi import status
 from app.src.services.user import UserService
 from app.src.utils.jwt import get_access_token_payload
-from app.src.services.auth_service import AuthService
+from app.src.services.auth.auth_service import AuthService
 from app.src.core.database import get_async_session
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -17,7 +18,9 @@ oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/login")
 
 def get_auth_service(
     session: AsyncSession = Depends(get_async_session),
-    redis_client: RedisClient = Depends(get_redis_client),
+    redis_client: RedisClient = Depends(
+        get_redis_client(ttl=config.redis.TTL_PASSWORD_ATTEMPS)
+    ),
 ) -> AuthService:
     return AuthService(session=session, redis=redis_client)
 

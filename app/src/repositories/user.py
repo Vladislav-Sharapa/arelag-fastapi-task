@@ -26,6 +26,14 @@ class UserRepository(SQLAlchemyRepository):
 
         return result.scalars()
 
+    async def update_password(self, model_id: int, password: str) -> None:
+        password_hash = get_password_hash(password)
+        query = (
+            update(User).where(User.id == model_id).values(password_hash=password_hash)
+        )
+
+        await self.session.execute(query)
+
     async def create_user(self, model: RequestUserModel) -> User:
         user = User(
             email=model.email,

@@ -3,7 +3,7 @@ from fastapi.security import OAuth2PasswordRequestForm
 
 from fastapi import APIRouter, Depends
 from app.src.schemas.auth import RequestUserLoginInfoModel, TokenInfo
-from app.src.services.auth_service import AuthService
+from app.src.services.auth.auth_service import AuthService
 from app.src.schemas.user_schemas import RequestUserModel, ResponseUserModel
 from app.src.api.depedencies.auth import (
     get_auth_service,
