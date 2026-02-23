@@ -4,6 +4,7 @@ from fastapi.responses import JSONResponse
 from fastapi import status, BackgroundTasks
 from app.src.core.redis import RedisClient
 from app.src.exceptions.profile import (
+    DuplicatePasswordException,
     InvalidResetCodeException,
     NoResetPasswordCode,
 )
@@ -13,6 +14,7 @@ from app.src.schemas.auth import (
 )
 from app.src.services.notification import NotificationService
 from app.src.services.user import UserService
+from app.src.utils.auth_security import verify_password
 
 
 class RequestResetPasswordService:
@@ -70,6 +72,9 @@ class RequestResetPasswordService:
             raise InvalidResetCodeException
 
         user = await self.__user_service.get_active_user_by_email(request.email)
+
+        if verify_password(request.password, user.password_hash):
+            raise DuplicatePasswordException
 
         await self.__user_service.update_password(user.id, request.password)
 
