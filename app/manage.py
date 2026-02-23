@@ -4,6 +4,7 @@ from fastapi import FastAPI
 from app.src.api.transaction import router as transaction_router
 from app.src.api.user import router as user_router
 from app.src.api.auth import router as auth_router
+from app.src.api.profile import router as profile_router
 from app.src.exceptions.transaction_exceptions import (
     register_transaction_error_handlers,
 )
@@ -15,6 +16,7 @@ app = FastAPI()
 app.include_router(transaction_router)
 app.include_router(user_router)
 app.include_router(auth_router)
+app.include_router(profile_router)
 
 # Exceptions
 register_transaction_error_handlers(app)
