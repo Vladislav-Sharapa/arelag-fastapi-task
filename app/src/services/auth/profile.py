@@ -31,6 +31,12 @@ class RequestResetPasswordService:
     async def request_reset_password(
         self, request: RequestEmailForNotification, background_task: BackgroundTasks
     ) -> JSONResponse:
+        """
+        Request a password reset for a user.
+
+        This method initiates the password reset process by generating a reset code
+        and sending it to the user's email address via a background task.
+        """
         key = self.__get_reset_key(request.email)
 
         try:
@@ -61,6 +67,12 @@ class RequestResetPasswordService:
     async def reset_password(
         self, request: RequestDataForResetPassword
     ) -> JSONResponse:
+        """
+        Reset a user's password using a verification code.
+
+        This method completes the password reset process by validating and updating
+        the user's password in the database.
+        """
         key = self.__get_reset_key(request.email)
 
         async with self.__redis as storage:
