@@ -1,3 +1,6 @@
+from contextlib import asynccontextmanager
+
+import taskiq_fastapi
 import uvicorn
 from fastapi import FastAPI
 
@@ -9,8 +12,26 @@ from app.src.exceptions.transaction_exceptions import (
 )
 from app.src.exceptions.user_exceptions import register_user_error_handlers
 from app.src.core.config import config
+from app.src.core import broker
 
-app = FastAPI()
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    await broker.startup()
+
+    yield
+
+    await broker.shutdown()
+
+
+@broker.task
+async def test():
+    pass
+
+
+app = FastAPI(lifespan=lifespan)
+
+taskiq_fastapi.init(broker, "app.manage:app")
 
 app.include_router(transaction_router)
 app.include_router(user_router)
@@ -19,6 +40,7 @@ app.include_router(auth_router)
 # Exceptions
 register_transaction_error_handlers(app)
 register_user_error_handlers(app)
+
 
 if __name__ == "__main__":
     uvicorn.run(
