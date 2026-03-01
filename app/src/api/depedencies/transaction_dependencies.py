@@ -7,7 +7,6 @@ from app.src.services.flows.transaction_flows import (
     CreateTransactionUseCase,
     TransactionRollBackUseCase,
 )
-from app.src.services.metrics_service import MetricsService
 from app.src.services.transaction import TransactionService
 
 
@@ -29,7 +28,7 @@ def get_transaction_roll_back_use_case(
     return TransactionRollBackUseCase(session=session)
 
 
-def get_metrics_service(
+def get_metrics_provider(
     session: AsyncSession = Depends(get_async_session),
 ):
-    return MetricsService(metrics_provider=MetricsProvider(session=session))
+    return MetricsProvider(session=session)

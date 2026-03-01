@@ -1,8 +1,9 @@
 from typing import Optional, List
 from fastapi import APIRouter, Depends, Path, status
+from app.src.analytics.transaction_metrics import MetricsProvider
 from app.src.api.depedencies.auth import check_user_ownership
 from app.src.api.depedencies.transaction_dependencies import (
-    get_metrics_service,
+    get_metrics_provider,
     get_transaction_create_use_case,
     get_transaction_roll_back_use_case,
     get_transaction_service,
@@ -20,7 +21,7 @@ from app.src.services.flows.transaction_flows import (
     CreateTransactionUseCase,
     TransactionRollBackUseCase,
 )
-from app.src.services.metrics_service import MetricsService
+from app.src.services.tasks import calculate_transactions_metrics
 from app.src.services.transaction import TransactionService
 
 router = APIRouter(dependencies=[Depends(PermissionsDependency([UserPermission]))])
@@ -75,6 +76,6 @@ async def patch_rollback_transaction(
     dependencies=[Depends(PermissionsDependency(AdminPermission))],
 )
 async def get_transactions_analysis(
-    metric_service: MetricsService = Depends(get_metrics_service),
+    metric_provider: MetricsProvider = Depends(get_metrics_provider),
 ):
-    return await metric_service.get_metrics()
+    return await calculate_transactions_metrics.kiq(metric_provider)
