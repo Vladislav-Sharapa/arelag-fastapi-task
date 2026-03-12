@@ -17,7 +17,7 @@ router = APIRouter(
 )
 
 
-@router.post("/request-password-reset")
+@router.post("/password/reset_request")
 async def request_reset_password(
     request: RequestEmailForNotification,
     background_task: BackgroundTasks,
@@ -32,7 +32,7 @@ async def request_reset_password(
     return response
 
 
-@router.post("/reset-password")
+@router.post("/password/reset")
 async def reset_password(
     request: RequestDataForResetPassword,
     request_reset_password_service: RequestResetPasswordService = Depends(
