@@ -8,6 +8,10 @@ class RedisSetting(BaseSettings):
     REDIS_PORT: str = 6380
     TTL: int = 3600
 
+    @property
+    def url(self):
+        return f"redis://{self.REDIS_USER}:{self.REDIS_USER_PASSWORD}@{self.REDIS_HOST}:{self.REDIS_PORT}"
+
     model_config = SettingsConfigDict(
         env_file=".env",
         extra="ignore",
