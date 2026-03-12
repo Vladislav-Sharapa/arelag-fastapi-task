@@ -2646,6 +2646,21 @@ fastapi = ">=0.93.0"
 taskiq = ">=0.8.0"
 
 [[package]]
+name = "taskiq-redis"
+version = "1.2.2"
+description = "Redis integration for taskiq"
+optional = false
+python-versions = ">=3.10"
+files = [
+    {file = "taskiq_redis-1.2.2-py3-none-any.whl", hash = "sha256:574d085c0c07f7fa9945e51195fe2db5b9d3c2a07bcfdc5a7ca323eae5319dff"},
+    {file = "taskiq_redis-1.2.2.tar.gz", hash = "sha256:103c488d143138bab8fc84044dbe68cd3561251090695a6042120398e9915325"},
+]
+
+[package.dependencies]
+redis = ">=7.0.0,<8"
+taskiq = ">=0.12.0"
+
+[[package]]
 name = "tomlkit"
 version = "0.13.3"
 description = "Style preserving TOML library"
@@ -2905,4 +2920,4 @@ propcache = ">=0.2.1"
 [metadata]
 lock-version = "2.0"
 python-versions = ">=3.11, <3.13"
-content-hash = "fed523121649e7c23955e14f0c9c97bdc6e88b8cc4998aeb3312b1048d4a6394"
+content-hash = "adac9f74979b8574a806e28e3c139d9dbd60d91ffc831dfc01a244e951a2c9af"
