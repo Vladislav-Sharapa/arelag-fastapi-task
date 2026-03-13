@@ -13,7 +13,7 @@ from app.src.schemas.transaction_schemas import (
 from sqlalchemy.ext.asyncio import AsyncSession
 
 
-class MetricsProvider:
+class MetricsService:
     def __init__(self, session: AsyncSession):
         """
         Provider for retrieving metrics from the database.
