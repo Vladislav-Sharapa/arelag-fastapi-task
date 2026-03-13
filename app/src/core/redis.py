@@ -40,12 +40,8 @@ class RedisClient:
         """
         Set a key-value pair in Redis.
 
-        Args:
-            key (str): The key to set.
-            value (Any): The value to set. If it's an integer
         """
-        if isinstance(value, int):
-            await self.redis.set(key, value, ex=self.__expire_time)
+        await self.redis.set(key, value, ex=self.__expire_time)
 
     async def get(self, key):
         """
@@ -68,11 +64,14 @@ class RedisClient:
         await self.redis.delete(key)
 
 
-async def get_redis_client() -> RedisClient:
-    return RedisClient(
-        host=config.redis.REDIS_HOST,
-        port=config.redis.REDIS_PORT,
-        username=config.redis.REDIS_USER,
-        password=config.redis.REDIS_USER_PASSWORD,
-        expire_time=config.redis.TTL,
-    )
+def get_redis_client(ttl: int):
+    def wrapper():
+        return RedisClient(
+            host=config.redis.REDIS_HOST,
+            port=config.redis.REDIS_PORT,
+            username=config.redis.REDIS_USER,
+            password=config.redis.REDIS_USER_PASSWORD,
+            expire_time=ttl,
+        )
+
+    return wrapper

@@ -26,6 +26,8 @@ kombu = "^5.6.2"
 taskiq-fastapi = "^0.4.0"
 taskiq-aio-pika = "^0.6.0"
 taskiq-redis = "^1.2.2"
+fastapi-mail = "^1.6.1"
+python-multipart = "^0.0.22"
 
 
 [tool.poetry.group.dev.dependencies]

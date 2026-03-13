@@ -117,3 +117,17 @@ class UserService:
         )  # TODO
 
         return UserBalanceModel.model_validate(balance)
+
+    async def update_password(self, model_id: int, password: str) -> None:
+        await self.__user_repository.update_password(model_id, password)
+
+        await self.__session.commit()
+
+
+async def get_registered_users_count(session: AsyncSession, dt_gt: date, dt_lt: date):
+    q = select(User).where(
+        (func.date(User.created >= dt_gt)) & (func.date(User.created) <= dt_lt)
+    )
+    registered_users = await session.execute(q)
+    registered_users = registered_users.fetchall()
+    return len(registered_users)
