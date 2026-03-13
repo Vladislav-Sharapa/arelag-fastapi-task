@@ -52,9 +52,13 @@ class RedisClient:
 
         """
         value: str = await self.redis.get(key)
-        if value and value.isdigit():
-            return int(value)
-        return value
+        if value:
+            if value.isdigit():
+                return int(value)
+            else:
+                return value.decode("utf-8")
+
+        return None
 
     async def clear_all(self):
         """Clear all keys and values from the Redis database."""

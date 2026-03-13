@@ -66,13 +66,13 @@ class RequestUserLoginInfoModel(BaseModel):
 class RequestDataForResetPassword(BaseModel, PasswordValidationMixin):
     email: EmailStr
     password: str
-    code: int
+    code: str
 
     @field_validator("code")
     def validate_code(cls, value):
         if not re.match(r"^\d{6}$", value):
             raise ValueError("Code must be exactly 6 digits (0-9)")
-        return value
+        return int(value)
 
 
 class RequestEmailForNotification(BaseModel):
